@@ -70,14 +70,18 @@ def index():
         redirect(URL("default", "index"))
 
     stable = db.submission
+    ptable = db.problem_tags
     problem_name = request.vars["pname"]
     problem_link = request.vars["plink"]
 
     submissions = db(stable.problem_link == problem_link).select(orderby=~stable.time_stamp)
     site = urltosite(problem_link)
     try:
-        tags_func = getattr(profile, site + "_get_tags")
-        all_tags = tags_func(problem_link)
+        all_tags = db(ptable.problem_link == problem_link).select(ptable.tags).first()
+        if all_tags:
+            all_tags = eval(all_tags["tags"])
+        else:
+            all_tags = []
         if all_tags != []:
             tags = DIV(_class="center")
             for tag in all_tags:
