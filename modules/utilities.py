@@ -97,16 +97,16 @@ def materialize_form(form, fields):
 
         try:
             _name = controls.attributes["_name"]
-        except KeyError:
+        except:
             _name = ""
         try:
             _type = controls.attributes["_type"]
-        except KeyError:
+        except:
             _type = "string"
 
         try:
             _id = controls.attributes["_id"]
-        except KeyError:
+        except:
             _id = ""
 
         if isinstance(controls, INPUT):
@@ -124,7 +124,6 @@ def materialize_form(form, fields):
         if isinstance(controls, SPAN):
             # Mostly for ids which cannot be edited by user
             _controls = INPUT(_value=controls.components[0],
-                              _type=_type,
                               _name=_name,
                               _id=_id,
                               _disabled="")
@@ -155,7 +154,6 @@ def materialize_form(form, fields):
             # If the values are readonly
             _controls = INPUT(_value=controls,
                               _name=_name,
-                              _type=_type,
                               _disabled="")
 
         if input_field is None:

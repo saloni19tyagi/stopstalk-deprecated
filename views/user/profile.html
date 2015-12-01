@@ -46,7 +46,7 @@
 
           $.ajax({
               method: 'GET',
-              url: '/stopstalk/user/get_stats.json/' + handle
+              url: '{{=URL("user", "get_stats", extension="json")}}' + "/" + handle
           }).done(function(data) {
 
               var statuses = data['row'];
@@ -105,7 +105,7 @@
                 handle = ""
             $.ajax({
                 method: 'GET',
-                url: '/stopstalk/user/get_dates.json/' + handle
+                url: '{{=URL("user", "get_dates", extension="json")}}' + "/" + handle
             }).done(function(total){
                 var dataTable = new google.visualization.DataTable();
                 dataTable.addColumn({ type: 'date', id: 'Date' });
