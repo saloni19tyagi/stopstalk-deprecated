@@ -223,7 +223,7 @@ def refresh_tags():
             all_tags = tags_func(link)
             if all_tags == []:
                 all_tags = ["-"]
-        except:
+        except AttributeError:
             all_tags = ["-"]
         print "."
 

@@ -94,6 +94,25 @@ def codeforces_get_tags(problem_link):
 
     return all_tags
 
+# -------------------------------------------------------------------------
+def hackerearth_get_tags(problem_link):
+
+    response = Profile.get_request(problem_link)
+    if response == -1:
+        return []
+
+    b = BeautifulSoup(response.text)
+    tags = b.find_all("div", class_="problem-tags")[0]
+    lis = tags.find_all("li")
+    all_tags = []
+    for li in lis:
+        if li.contents[0] != "No tags":
+            all_tags.append(li.contents[0])
+
+    if all_tags == []:
+        all_tags = ["-"]
+    return all_tags
+
 class Profile(object):
     """
         Class containing methods for retrieving
