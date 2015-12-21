@@ -20,13 +20,17 @@
     THE SOFTWARE.
 """
 
-import utilities
 import time
 from datetime import datetime, date
+import utilities
 
 # ------------------------------------------------------------------------------
 @auth.requires_login()
 def index():
+    """
+        Not used
+    """
+
     return dict()
 
 # ------------------------------------------------------------------------------
@@ -77,19 +81,22 @@ def edit_custom_friend_details():
 # ------------------------------------------------------------------------------
 @auth.requires_login()
 def update_details():
+    """
+        Update user details
+    """
 
     form_fields = ["first_name",
                    "last_name",
                    "email",
                    "institute",
-                   "stopstalk_handle",
-                   ]
+                   "stopstalk_handle"]
 
     for site in current.SITES:
         form_fields.append(site.lower() + "_handle")
 
-    record = db.auth_user(session.user_id)
-    form = SQLFORM(db.auth_user,
+    atable = db.auth_user
+    record = atable(session.user_id)
+    form = SQLFORM(atable,
                    record,
                    fields=form_fields)
 
@@ -108,7 +115,7 @@ def update_friend():
         Update custom friend details
     """
 
-    if len(request.args) < 1:
+    if len(request.args) != 1:
         session.flash = "Please click one of the buttons"
         redirect(URL("user", "edit_custom_friend_details"))
 
@@ -133,8 +140,7 @@ def update_friend():
     form = SQLFORM(cftable,
                    record,
                    fields=form_fields,
-                   deletable=True,
-                   )
+                   deletable=True)
 
     if form.process().accepted:
         if form.vars.delete_this_record != "on":
@@ -188,7 +194,7 @@ def get_dates():
 
     total_submissions = {}
     streak = max_streak = 0
-    prev = curr = start = None
+    prev = curr = None
 
     for i in row:
 
@@ -196,7 +202,6 @@ def get_dates():
             prev = time.strptime(str(i[1]), "%Y-%m-%d %H:%M:%S")
             prev = date(prev.tm_year, prev.tm_mon, prev.tm_mday)
             streak = 1
-            start = prev
         else:
             curr = time.strptime(str(i[1]), "%Y-%m-%d %H:%M:%S")
             curr = date(curr.tm_year, curr.tm_mon, curr.tm_mday)
@@ -239,7 +244,7 @@ def get_stats():
     if request.extension != "json":
         redirect(URL("default", "index"))
 
-    if len(request.args) < 1:
+    if len(request.args) != 1:
         if session.handle:
             handle = str(session.handle)
         else:
@@ -422,8 +427,6 @@ def friend_requests():
 def add_friend(user_id, friend_id):
     """
         Add a friend into friend-list
-
-        @ToDo: Maybe Unnecessary wrapper
     """
 
     db.friends.insert(user_id=user_id,
@@ -454,6 +457,7 @@ def accept_fr():
 
     session.flash = "Friend added!"
     redirect(URL("user", "friend_requests"))
+
     return dict()
 
 # ------------------------------------------------------------------------------
@@ -473,6 +477,8 @@ def reject_fr():
 
     session.flash = "Friend request rejected!"
     redirect(URL("user", "friend_requests"))
+
+    return dict()
 
 # ------------------------------------------------------------------------------
 @auth.requires_login()
@@ -505,3 +511,5 @@ def custom_friend():
         redirect(URL("default", "submissions", args=[1]))
 
     return dict(form=form)
+
+# END =========================================================================

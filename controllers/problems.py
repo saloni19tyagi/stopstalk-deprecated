@@ -21,7 +21,7 @@
 """
 
 import re
-import time, datetime
+import datetime
 import utilities
 import profilesites as profile
 
@@ -74,10 +74,12 @@ def index():
     problem_name = request.vars["pname"]
     problem_link = request.vars["plink"]
 
-    submissions = db(stable.problem_link == problem_link).select(orderby=~stable.time_stamp)
-    site = urltosite(problem_link)
+    query = (stable.problem_link == problem_link)
+    submissions = db(query).select(orderby=~stable.time_stamp)
+
     try:
-        all_tags = db(ptable.problem_link == problem_link).select(ptable.tags).first()
+        query = (ptable.problem_link == problem_link)
+        all_tags = db(query).select(ptable.tags).first()
         if all_tags:
             all_tags = eval(all_tags["tags"])
         else:
@@ -148,9 +150,9 @@ def tag():
             # Decision to make & or |
             # & => Search for problem containing all these tags
             # | => Search for problem containing one of the tags
-            query &= ptable.tags.like("%" + tag + "%")
+            query &= ptable.tags.contains(tag)
         else:
-            query = ptable.tags.like("%" + tag + "%")
+            query = ptable.tags.contains(tag)
 
     join_query = (stable.problem_link == ptable.problem_link)
 
@@ -186,7 +188,9 @@ def tag():
                           _class="chip"))
             td.append(" ")
         tr.append(td)
-        table.append(tr)
+        tbody.append(tr)
+
+    table.append(tbody)
 
     return dict(table=table)
 
@@ -204,10 +208,8 @@ def refresh_tags():
     # Problems that are in submission table
     updated_problem_list = db(stable.id > 0).select(stable.problem_link,
                                                     distinct=True)
-    current_problem_list = map(lambda x: x["problem_link"],
-                               current_problem_list)
-    updated_problem_list = map(lambda x: x["problem_link"],
-                               updated_problem_list)
+    current_problem_list = [x["problem_link"] for x in current_problem_list]
+    updated_problem_list = [x["problem_link"] for x in updated_problem_list]
 
     # Problems having tags = ["-"]
     # Possibilities of such case -
@@ -215,8 +217,7 @@ def refresh_tags():
     #   => The problem is from a contest and they'll be updating tags shortly
     #   => Page was not reachable due to some reason
     no_tags = db(ptable.tags == "['-']").select(ptable.problem_link)
-    no_tags = map(lambda x: x["problem_link"],
-                  no_tags)
+    no_tags = [x["problem_link"] for x in no_tags]
 
     # Compute difference between the lists
     difference_list = list((set(updated_problem_list) - \
@@ -249,6 +250,9 @@ def refresh_tags():
           utilities.RESET_COLOR
 
 def _render_trending(caption, rows):
+    """
+        Return table containing trending problems
+    """
 
     table = TABLE(_class="striped centered")
     thead = THEAD(TR(TH("Problem"), TH("Submissions")))
@@ -278,9 +282,7 @@ def trending():
 
     today = datetime.datetime.today()
     start_date = str(today - datetime.timedelta(days=current.PAST_DAYS))
-    start_time = time.strptime(start_date[:-7], "%Y-%m-%d %H:%M:%S")
     end_date = str(today)
-    end_time = time.strptime(end_date[:-7], "%Y-%m-%d %H:%M:%S")
 
     count = stable.id.count()
     PROBLEMS_PER_PAGE = current.PROBLEMS_PER_PAGE
@@ -318,4 +320,7 @@ def trending():
         div.append(DIV(global_table, _class="col s6"))
     else:
         div = DIV(global_table, _class="center")
+
     return dict(div=div)
+
+# END =========================================================================
