@@ -277,12 +277,12 @@ def profile():
 
     stable = db.submission
     name = row.first_name + " " + row.last_name
-    group_by = []
+    group_by = [stable.site, stable.status]
     query = (stable.stopstalk_handle == handle)
     rows = db(query).select(stable.site,
                             stable.status,
                             stable.id.count(),
-                            groupby=[stable.site, stable.status])
+                            groupby=group_by)
 
 
     data = {}
@@ -307,7 +307,8 @@ def profile():
         else:
             efficiency[i] = "%.3f" % (data[i][0] * 100.0 / data[i][1])
 
-    return dict(name=name,
+    return dict(row=row,
+                name=name,
                 efficiency=efficiency,
                 handle=handle)
 
