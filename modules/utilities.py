@@ -25,7 +25,9 @@ from datetime import datetime
 from gluon import current, IMG, DIV, TABLE, THEAD, \
                   TBODY, TR, TH, TD, A, SPAN, INPUT, \
                   TEXTAREA, SELECT, OPTION, URL
-import profilesites as profile
+
+# @ToDo: Make this generalised
+from sites import codechef, codeforces, spoj, hackerearth, hackerrank
 
 RED = "\x1b[1;31m"
 GREEN = "\x1b[1;32m"
@@ -317,8 +319,9 @@ def retrieve_submissions(reg_user, custom=False):
     for site in current.SITES:
         site_handle = row[site.lower() + "_handle"]
         if site_handle:
-            P = profile.Profile(site, site_handle)
-            site_method = getattr(P, site.lower())
+            Site = globals()[site.lower()]
+            P = Site.Profile(site_handle)
+            site_method = P.get_submissions
             submissions = site_method(last_retrieved)
             list_of_submissions.append((site, submissions))
             if submissions == -1:

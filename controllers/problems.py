@@ -23,7 +23,9 @@
 import re
 import datetime
 import utilities
-import profilesites as profile
+
+# @ToDo: Make this generalised
+from sites import codechef, codeforces, spoj, hackerearth, hackerrank
 
 # ----------------------------------------------------------------------------
 def pie_chart_helper():
@@ -49,7 +51,7 @@ def urltosite(url):
 
     # Note: try/except is not added because this function is not to
     #       be called for invalid problem urls
-    site = re.search("www.*com", url).group()
+    site = re.search("www\..*\.com", url).group()
 
     # Remove www. and .com from the url to get the site
     site = site[4:-4]
@@ -230,19 +232,22 @@ def refresh_tags():
     for link in difference_list:
         site = urltosite(link)
         try:
-            tags_func = getattr(profile, site + "_get_tags")
+            Site = globals()[site]
+            tags_func = Site.Profile().get_tags
             all_tags = tags_func(link)
             if all_tags == []:
                 all_tags = ["-"]
         except AttributeError:
             all_tags = ["-"]
-        print "."
 
         # Insert tags in problem_tags table
         # Note: Tags are stored in a stringified list
         #       so that they can be used directly by eval
-        ptable.insert(problem_link=link,
-                      tags=str(all_tags))
+        ptable.update_or_insert(ptable.problem_link == link,
+                                problem_link=link,
+                                tags=str(all_tags))
+
+        print link, all_tags
 
     print "\nNew problems added: " + \
           utilities.RED + \
