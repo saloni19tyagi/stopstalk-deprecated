@@ -225,12 +225,18 @@ def refresh_tags():
     current_problem_list = [x["problem_link"] for x in current_problem_list]
     updated_problem_list = [x["problem_link"] for x in updated_problem_list]
 
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    before_10 = (datetime.datetime.now() - datetime.timedelta(10)).strftime("%Y-%m-%d")
+
     # Problems having tags = ["-"]
     # Possibilities of such case -
     #   => There are actually no tags for the problem
-    #   => The problem is from a contest and they'll be updating tags shortly
+    #   => The problem is from a contest and they'll be
+    #      updating tags shortly(assuming 10 days)
     #   => Page was not reachable due to some reason
-    no_tags = db(ptable.tags == "['-']").select(ptable.problem_link)
+    query = (ptable.problem_added_on >= before_10)
+    query &= (ptable.tags == "['-']")
+    no_tags = db(query).select(ptable.problem_link)
     no_tags = [x["problem_link"] for x in no_tags]
 
     # Compute difference between the lists
@@ -257,7 +263,8 @@ def refresh_tags():
         #       so that they can be used directly by eval
         ptable.update_or_insert(ptable.problem_link == link,
                                 problem_link=link,
-                                tags=str(all_tags))
+                                tags=str(all_tags),
+                                problem_added_on=today)
 
         print link, all_tags
 
