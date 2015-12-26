@@ -357,7 +357,6 @@ def search():
     return dict()
 
 # ----------------------------------------------------------------------------
-@auth.requires_login()
 def filters():
     """
         Apply multiple kind of filters on submissions
@@ -388,12 +387,13 @@ def filters():
     atable = db.auth_user
     ftable = db.friends
 
-    # Retrieve all the custom users created by the logged-in user
-    query = (cftable.first_name.contains(get_vars["name"]))
-    query |= (cftable.last_name.contains(get_vars["name"]))
-    query &= (cftable.user_id == session.user_id)
-    custom_friends = db(query).select(cftable.id)
-    cusfriends = [x["id"] for x in custom_friends]
+    if session.auth:
+        # Retrieve all the custom users created by the logged-in user
+        query = (cftable.first_name.contains(get_vars["name"]))
+        query |= (cftable.last_name.contains(get_vars["name"]))
+        query &= (cftable.user_id == session.user_id)
+        custom_friends = db(query).select(cftable.id)
+        cusfriends = [x["id"] for x in custom_friends]
 
     # Get the friends of logged in user
     query = (atable.first_name.contains(get_vars["name"]))
@@ -405,8 +405,9 @@ def filters():
     # User in one of the friends
     query = (stable.user_id.belongs(friends))
 
-    # User in one of the custom friends
-    query |= (stable.custom_user_id.belongs(cusfriends))
+    if session.auth:
+        # User in one of the custom friends
+        query |= (stable.custom_user_id.belongs(cusfriends))
 
     start_date = get_vars["start_date"]
     end_date = get_vars["end_date"]
