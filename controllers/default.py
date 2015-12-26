@@ -629,22 +629,14 @@ def submissions():
 
     cftable = db.custom_friend
     ftable = db.friends
+    stable = db.submission
+    atable = db.auth_user
 
-    # Retrieve all the custom users created by the logged-in user
-    query = (cftable.user_id == session.user_id)
-    custom_friends = db(query).select(cftable.id)
+    # Get all the friends/custom friends of the logged-in user
+    friends, cusfriends = utilities.get_friends(session["user_id"])
 
-    cusfriends = []
-    for friend in custom_friends:
-        cusfriends.append(friend.id)
-
-    # Get the friends of logged in user
-    query = (ftable.user_id == session.user_id)
-    friends = db(query).select(ftable.friend_id)
-    friends = [x["friend_id"] for x in friends]
-
-    query = (db.submission.user_id.belongs(friends))
-    query |= (db.submission.custom_user_id.belongs(cusfriends))
+    query = (stable.user_id.belongs(friends))
+    query |= (stable.custom_user_id.belongs(cusfriends))
     total_count = db(query).count()
 
     PER_PAGE = current.PER_PAGE
@@ -652,17 +644,25 @@ def submissions():
     if total_count % PER_PAGE:
         count += 1
 
+    friend_query = (atable.id.belongs(friends))
+    friends_list = db(friend_query).select(atable.id,
+                                           atable.first_name,
+                                           atable.last_name)
     all_friends = []
-    for friend_id in friends:
-        row = db(db.auth_user.id == friend_id).select().first()
-        all_friends.append([friend_id,
-                            row.first_name + " " + row.last_name])
+    for friend in friends_list:
+        friend_name = friend["first_name"] + " " + friend["last_name"]
+        all_friends.append([friend["id"],
+                            friend_name])
 
+    cusfriend_query = (cftable.id.belongs(cusfriends))
+    cusfriends_list = db(cusfriend_query).select(cftable.id,
+                                                 cftable.first_name,
+                                                 cftable.last_name)
     all_custom_friends = []
-    for friend_id in cusfriends:
-        row = db(db.custom_friend.id == friend_id).select().first()
-        all_custom_friends.append([friend_id,
-                                   row.first_name + " " + row.last_name])
+    for friend in cusfriends_list:
+        friend_name = friend["first_name"] + " " + friend["last_name"]
+        all_custom_friends.append([friend["id"],
+                                   friend_name])
 
     if request.extension == "json":
         return dict(count=count,
